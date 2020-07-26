@@ -1,0 +1,3 @@
+include ':livedataplus'
+include ':app'
+rootProject.name = "LiveDataPlus"
