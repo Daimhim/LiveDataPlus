@@ -370,7 +370,7 @@ public class CopyLiveData<T> {
         }
     }
 
-    private static abstract class ObserverWrapper<T> {
+    public static abstract class ObserverWrapper<T> {
         final Observer<? super T> mObserver;
         boolean mActive;
         int mLastVersion = START_VERSION;
