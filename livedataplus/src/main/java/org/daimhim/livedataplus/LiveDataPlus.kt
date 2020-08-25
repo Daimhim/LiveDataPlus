@@ -3,13 +3,15 @@ package org.daimhim.livedataplus
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 
-class LiveDataPlus {
+class LiveDataPlus<T> {
 
 
-//    fun observe(
-//        owner: LifecycleOwner,
-//        observer: Observer<in T?>
-//    )
+    fun observe(
+        owner: LifecycleOwner,
+        observer: Observer<T>
+    ){
+
+    }
 
     abstract class ObserverWrapper<T> {
         /**
@@ -28,9 +30,8 @@ class LiveDataPlus {
          * 断开监听
          */
         abstract fun detachObserver()
+
+        abstract fun isAttachedTo(owner: LifecycleOwner?): Boolean
     }
 
-    interface IObserverWrapper<T>{
-
-    }
 }
