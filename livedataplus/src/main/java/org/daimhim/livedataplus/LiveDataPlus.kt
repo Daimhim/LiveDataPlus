@@ -1,29 +1,36 @@
 package org.daimhim.livedataplus
 
-import androidx.annotation.MainThread
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
 
-class LiveDataPlus<T> {
-    @Volatile
-    private var mData: Any? = null
+class LiveDataPlus {
 
 
-    @MainThread
-    protected fun setValue(value: T) {
-        CopyLiveData.assertMainThread("setValue")
-        mData = value
-        dispatchingValue(null)
+//    fun observe(
+//        owner: LifecycleOwner,
+//        observer: Observer<in T?>
+//    )
+
+    abstract class ObserverWrapper<T> {
+        /**
+         * 是否活跃
+         */
+        abstract fun shouldBeActive(): Boolean
+
+        /**
+         * 更新
+         * newActive true 为最新数据
+         * false 为老数据版本同步
+         */
+        abstract fun activeStateChanged(newActive: Boolean)
+
+        /**
+         * 断开监听
+         */
+        abstract fun detachObserver()
     }
-    private fun dispatchingValue(initiator: CopyLiveData.ObserverWrapper<T>?) {
-        initiator?.let {
-            considerNotify(it)
-        }
-    }
 
-    private fun considerNotify(observer: CopyLiveData.ObserverWrapper<T>) {
-        observer.mObserver.onChanged(mData as T)
-    }
-
-    public abstract class ObserverWrapperPlus<T>{
+    interface IObserverWrapper<T>{
 
     }
 }
