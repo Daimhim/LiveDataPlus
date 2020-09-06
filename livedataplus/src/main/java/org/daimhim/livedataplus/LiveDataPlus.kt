@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import androidx.annotation.MainThread
 import androidx.arch.core.executor.ArchTaskExecutor
 import androidx.arch.core.internal.SafeIterableMap
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 
@@ -40,6 +39,7 @@ abstract class LiveDataPlus<T> {
         mData = value
         mVersion = START_VERSION + 1
     }
+
     constructor(){
         mData = NOT_SET;
         mVersion = START_VERSION;
@@ -72,8 +72,7 @@ abstract class LiveDataPlus<T> {
             if (initiator != null) {
                 considerNotify(initiator)
             } else {
-                @SuppressLint("RestrictedApi")
-                val iterator:Iterator<Map.Entry<Observer<in T>,ObserverWrapper<T>>> = mObservers.iteratorWithAdditions()
+                @SuppressLint("RestrictedApi")val iterator:Iterator<Map.Entry<Observer<in T>,ObserverWrapper<T>>> = mObservers.iteratorWithAdditions()
                 while (iterator.hasNext()) {
                     considerNotify(iterator.next().value)
                     if (mDispatchInvalidated) {
@@ -85,15 +84,19 @@ abstract class LiveDataPlus<T> {
         mDispatchingValue = false
     }
 
-    @MainThread
-    open fun observe(owner:LifecycleOwner,observer:Observer<in T>){
-        if (owner.lifecycle.currentState == Lifecycle.State.DESTROYED) {
-            // ignore
-            return
-        }
-    }
+
     @MainThread
     fun observeForever(observer: Observer<in T>) {
+        val wrapper = AlwaysActiveObserver<T>(observer, this)
+        @SuppressLint("RestrictedApi") val existing = mObservers.putIfAbsent(observer, wrapper)
+        require(!(existing != null && existing is AlwaysActiveObserver)) {
+            ("Cannot add the same observer"
+                    + " with different lifecycles")
+        }
+        if (existing != null) {
+            return
+        }
+        wrapper.activeStateChanged(true)
     }
 
 
@@ -115,7 +118,7 @@ abstract class LiveDataPlus<T> {
     }
 
     @SuppressLint("RestrictedApi")
-    protected fun postValue(value: T) {
+    protected open fun postValue(value: T) {
         var postTask: Boolean
         synchronized(mDataLock) {
             postTask = mPendingData === NOT_SET
@@ -128,7 +131,7 @@ abstract class LiveDataPlus<T> {
     }
 
     @MainThread
-    protected fun setValue(value:T){
+    protected open fun setValue(value:T){
         mVersion++
         mData = value
         dispatchingValue(null)
@@ -144,8 +147,8 @@ abstract class LiveDataPlus<T> {
     fun getVersion(): Int {
         return mVersion
     }
-    protected fun onActive() {}
-    protected fun onInactive() {}
+    fun onActive() {}
+    fun onInactive() {}
 
     @SuppressLint("RestrictedApi")
     fun hasObservers(): Boolean {
@@ -155,14 +158,15 @@ abstract class LiveDataPlus<T> {
     fun hasActiveObservers(): Boolean {
         return mActiveCount > 0
     }
+
     abstract class ObserverWrapper<T> {
         val mObserver: Observer<in T>
         var mActive = false
-        var mLastVersion = LiveDataPlus.START_VERSION;
-        protected var mLiveDataPlus:LiveDataPlus<T>;
-        constructor(observer:Observer<T>, liveDataPlus:LiveDataPlus<T>){
+        var mLastVersion = START_VERSION;
+        protected var liveDataPlus:LiveDataPlus<T>;
+        constructor(observer:Observer<in T>, liveDataPlus:LiveDataPlus<T>){
             mObserver = observer;
-            mLiveDataPlus = liveDataPlus;
+            this.liveDataPlus = liveDataPlus;
         }
 
         /**
@@ -175,30 +179,30 @@ abstract class LiveDataPlus<T> {
          * newActive true 为最新数据
          * false 为老数据版本同步
          */
-        fun activeStateChanged(newActive: Boolean){
+        open fun activeStateChanged(newActive: Boolean){
             if (newActive == mActive) {
                 return
             }
             // immediately set active state, so we'd never dispatch anything to inactive
             // owner
             mActive = newActive
-            val wasInactive = mLiveDataPlus.mActiveCount == 0
-            mLiveDataPlus.mActiveCount += if (mActive) 1 else -1
+            val wasInactive = liveDataPlus.mActiveCount == 0
+            liveDataPlus.mActiveCount += if (mActive) 1 else -1
             if (wasInactive && mActive) {
-                mLiveDataPlus.onActive()
+                liveDataPlus.onActive()
             }
-            if (mLiveDataPlus.mActiveCount == 0 && !mActive) {
-                mLiveDataPlus.onInactive()
+            if (liveDataPlus.mActiveCount == 0 && !mActive) {
+                liveDataPlus.onInactive()
             }
             if (mActive) {
-                mLiveDataPlus.dispatchingValue(this)
+                liveDataPlus.dispatchingValue(this)
             }
         }
 
         /**
          * 断开监听
          */
-        fun detachObserver(){
+        open fun detachObserver(){
 
         }
 
@@ -208,5 +212,12 @@ abstract class LiveDataPlus<T> {
     }
 
 
+    class AlwaysActiveObserver<T>(observer: Observer<in T>,liveDataPlus:LiveDataPlus<T>)
+        : ObserverWrapper<T>(observer,liveDataPlus){
+
+        override fun shouldBeActive(): Boolean {
+            return true
+        }
+    }
 
 }
