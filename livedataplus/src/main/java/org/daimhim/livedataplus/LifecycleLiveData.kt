@@ -5,14 +5,17 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 
-class LifecycleLiveData<T>:LazyLifecycleLiveData<T>() {
+class LifecycleLiveData<T> : LazyLifecycleLiveData<T> {
+
+    constructor(value: T) : super(value)
+    constructor() : super()
 
     override fun observe(owner: LifecycleOwner, observer: Observer<in T>) {
         if (owner.lifecycle.currentState == Lifecycle.State.DESTROYED) {
             return
         }
         val wrapper = LifecycleBoundObserver<T>(owner, observer, this)
-        @SuppressLint("RestrictedApi") val existing = mObservers.putIfAbsent(observer,wrapper)
+        @SuppressLint("RestrictedApi") val existing = mObservers.putIfAbsent(observer, wrapper)
         require(!(existing != null && !existing.isAttachedTo(owner))) {
             ("Cannot add the same observer"
                     + " with different lifecycles")
@@ -27,7 +30,7 @@ class LifecycleLiveData<T>:LazyLifecycleLiveData<T>() {
         owner: LifecycleOwner,
         observer: Observer<in T>,
         liveDataPlus: LazyLifecycleLiveData<T>
-    ) : LazyLifecycleBoundObserver<T>(owner,observer, liveDataPlus){
+    ) : LazyLifecycleBoundObserver<T>(owner, observer, liveDataPlus) {
         override fun activeStateChanged(newActive: Boolean) {
             super.activeStateChanged(newActive)
             if (mActive) {

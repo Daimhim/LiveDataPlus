@@ -7,7 +7,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 
-open class LazyLifecycleLiveData<T> : LiveDataPlus<T>() {
+open class LazyLifecycleLiveData<T> : LiveDataPlus<T> {
+    constructor(value: T) : super(value)
+    constructor() : super()
 
     @MainThread
     open fun observe(owner: LifecycleOwner, observer: Observer<in T>){
