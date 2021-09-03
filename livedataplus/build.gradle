@@ -12,5 +12,7 @@ android {
 }
 
 dependencies {
-
+    compileOnly androidxDependencies.lifecycle_livedata_ktx
+    compileOnly androidxDependencies.appcompat
+    compileOnly androidxDependencies.lifecycle_viewmodel_ktx
 }
