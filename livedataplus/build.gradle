@@ -30,5 +30,5 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-livedata:$lifecycle_version"
     // Lifecycles only (without ViewModel or LiveData)
     implementation "androidx.lifecycle:lifecycle-runtime:$lifecycle_version"
-    implementation "androidx.core:core-ktx:${kotlin_version}"
+    implementation "androidx.core:core-ktx:${core_ktx}"
 }

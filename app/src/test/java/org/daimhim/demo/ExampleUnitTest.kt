@@ -1,4 +1,4 @@
-package org.daimhim.livedataplus
+package org.daimhim.demo
 
 import org.junit.Test
 
