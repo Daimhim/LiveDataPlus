@@ -1,24 +1,34 @@
-apply from: "../../../configurationDev/build_config.gradle"
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
 
 android {
+    compileSdk 32
 
     defaultConfig {
-        versionCode 3
-        versionName "1.0.2"
+        minSdk 16
+        targetSdk 32
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
     }
 }
 
+
 dependencies {
-//    compileOnly androidxDependencies.lifecycle_livedata_ktx
-//    compileOnly androidxDependencies.appcompat
-//    compileOnly androidxDependencies.lifecycle_viewmodel_ktx
-//    implementation "androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycle_version"
-    def lifecycle_version = "2.3.1"
-    // ViewModel
-//    implementation "androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version"
-    // LiveData
+    def lifecycle_version = "2.4.0"
     implementation "androidx.lifecycle:lifecycle-livedata:$lifecycle_version"
     // Lifecycles only (without ViewModel or LiveData)
     implementation "androidx.lifecycle:lifecycle-runtime:$lifecycle_version"
-
+    implementation "androidx.core:core-ktx:${kotlin_version}"
 }

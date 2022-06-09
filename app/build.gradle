@@ -1,15 +1,26 @@
-apply from: "../../build_config.gradle"
+plugins {
+    id 'com.android.application'
+}
 
 android {
+    compileSdk 31
 
     defaultConfig {
-        applicationId "org.daimhim.livedataplus"
+        applicationId "org.daimhim.demo"
+        minSdk 16
+        targetSdk 31
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
 }
 
 dependencies {

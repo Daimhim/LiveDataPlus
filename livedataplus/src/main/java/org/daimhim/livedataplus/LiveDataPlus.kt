@@ -155,6 +155,19 @@ abstract class LiveDataPlus<T> {
         return mObservers.size() > 0
     }
 
+    fun hasObservers(observer: Observer<in T>): Boolean {
+        if (!hasObservers()){
+            return false
+        }
+        mObservers.forEach {
+            if (it.key == observer){
+                return true
+            }
+        }
+        return false
+    }
+
+
     fun hasActiveObservers(): Boolean {
         return mActiveCount > 0
     }
